@@ -1,19 +1,25 @@
 import { TextitConversationStatus, TextitResponse } from "./textit";
 import { geosearch, GeoSearchBoroughGid } from "./geosearch";
+import { getNychaInfo } from "./nycha";
+import { isRtcZipcode } from "./rtc-zipcodes";
 
 const INVALID_YES_OR_NO = `Sorry, I didn't understand that. Please respond with Yes or No.`;
 
-type EvictionType = 'nonpayment'|'holdover'|'other';
+// These have meaning to the EFNYC site, please don't change them.
+type EvictionType = 'nonpay'|'holdover'|'general';
 
 type StateHandlerName = (keyof StateHandlers)|'END';
 
-type State = {
+type RtcInfo = {
+  boroughGid: GeoSearchBoroughGid,
+  zip: string,
+  bbl: string,
+  isIncomeEligible: boolean,
+  evictionType: EvictionType,
+};
+
+type State = Partial<RtcInfo> & {
   handlerName: StateHandlerName,
-  boroughGid?: GeoSearchBoroughGid,
-  zip?: string,
-  bbl?: string,
-  isIncomeEligible?: boolean,
-  evictionType?: EvictionType,
 };
 
 type StateHandler = (state: State, input: string) => TextitResponse|Promise<TextitResponse>;
@@ -96,15 +102,23 @@ class StateHandlers {
   receiveEvictionType: StateHandler = (s, input) => {
     let evictionType: EvictionType;
 
-    if (/pay/i.test(input)) {
-      evictionType = 'nonpayment';
+    if (/non/i.test(input)) {
+      evictionType = 'nonpay';
     } else if (/hold/i.test(input)) {
       evictionType = 'holdover';
+    } else if (/other/i.test(input)) {
+      evictionType = 'general';
     } else {
-      evictionType = 'other';
+      return ask(s, 'Sorry, I didn\'t understand that. Please respond with Nonpayment, Holdover, or Other.', 'receiveEvictionType');
     }
 
-    return end(s, 'TODO: Finish this!');
+    const help = getRtcHelp(ensureRtcInfo({ ...s, evictionType }));
+
+    return end(s, [
+      help.title,
+      '',
+      `Visit ${help.url} for next steps.`
+    ]);
   };
 }
 
@@ -166,4 +180,52 @@ function parseYesOrNo(text: string): boolean|undefined {
   if (isYes(text)) return true;
   if (isNo(text)) return false;
   return undefined;
+}
+
+function getEfnycBoroughId(boroughGid: GeoSearchBoroughGid): string {
+  switch (boroughGid) {
+    case GeoSearchBoroughGid.Manhattan: return 'manhattan';
+    case GeoSearchBoroughGid.Queens: return 'queens';
+    case GeoSearchBoroughGid.Brooklyn: return 'brooklyn';
+    case GeoSearchBoroughGid.Bronx: return 'bronx';
+    case GeoSearchBoroughGid.StatenIsland: return 'staten';
+  }
+
+  throw new Error(`Invalid borough gid: ${boroughGid}`);
+}
+
+function ensureRtcInfo(info: Partial<RtcInfo>): RtcInfo {
+  const { boroughGid, zip, bbl, isIncomeEligible, evictionType } = info;
+
+  if (boroughGid === undefined || zip === undefined || isIncomeEligible === undefined || evictionType === undefined || bbl === undefined) {
+    throw new Error('RtcInfo is not complete!');
+  }
+
+  return { boroughGid, zip, bbl, isIncomeEligible, evictionType };
+}
+
+// This is a feeble attempt to encapsulate the logic contained in the following files:
+//
+// https://github.com/JustFixNYC/eviction-free-nyc/blob/master/src/utils/logic.js
+// https://github.com/JustFixNYC/eviction-free-nyc/blob/master/functions/resultspageurl-lambda.js
+function getRtcHelp({ zip, boroughGid, evictionType, isIncomeEligible, bbl }: RtcInfo): {title: string, url: string} {
+  const borough = getEfnycBoroughId(boroughGid);
+  const locale = 'en-US';
+  const host = 'www.evictionfreenyc.org';
+  const isNYCHA = !!getNychaInfo(bbl);
+  const isRtcZip = isRtcZipcode(zip);
+  const isEligible = isRtcZip && isIncomeEligible;
+  const rtc = evictionType !== 'general' && isEligible ? 'rtc' : '';
+
+  if (isNYCHA && evictionType === 'general') {
+    return {
+      title: 'If the head of household in your apartment is 62 years or older, and you have an administrative hearing at NYCHA, you have the right to an attorney. Otherwise, you still have options to get assistance.',
+      url: `https://${host}/${locale}/admin-hearings`
+    };
+  }
+
+  return {
+    title: rtc ? 'Great news! You likely have the right to a free attorney.' : 'You may not yet have the right to a free attorney, but you still have options to get assistance!',
+    url: `https://${host}/${locale}/guide/${borough}/${evictionType}${rtc}?zip=${zip}`
+  };
 }
