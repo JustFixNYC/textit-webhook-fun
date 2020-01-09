@@ -1,8 +1,9 @@
 import express from 'express';
 
-type ConversationStatus = "end"|"continue";
+type ConversationStatus = "end"|"ask"|"loop";
 
 type ConversationState = {
+  welcomeMessagesSent: number,
   counter: number,
 };
 
@@ -29,9 +30,9 @@ function parseState(value: string|undefined, defaultValue: ConversationState): C
 
 app.get('/', (req, res) => {
   const input: string|undefined = req.query.input;
-  const state = parseState(req.query.state, {counter: 0});
+  const state = parseState(req.query.state, {counter: 0, welcomeMessagesSent: 0});
   let text: string;
-  let conversationStatus: ConversationStatus = "continue";
+  let conversationStatus: ConversationStatus = "ask";
 
   if (input && typeof(input === "string")) {
     if (input === "bye") {
@@ -42,7 +43,13 @@ app.get('/', (req, res) => {
       state.counter++;
     }
   } else {
-    text = "Welcome, buddy!";
+    if (state.welcomeMessagesSent == 0) {
+      text = "Welcome, buddy!";
+      conversationStatus = "loop";
+    } else {
+      text = "Tell me something.";
+    }
+    state.welcomeMessagesSent += 1;
   }
 
   const response: TextitResponse = {text, conversationStatus, state: JSON.stringify(state)};
