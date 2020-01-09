@@ -1,3 +1,6 @@
+// This file is adapted from:
+// https://github.com/JustFixNYC/justfix-ts/tree/master/packages/geosearch-requester
+
 import fetch from 'isomorphic-fetch';
 
 /**
