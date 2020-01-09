@@ -17,9 +17,12 @@ const PORT = process.env.PORT || '3000';
 const app = express();
 
 function parseState(value: string|undefined, defaultValue: ConversationState): ConversationState {
+  if (!value) return defaultValue;
+
   try {
     return JSON.parse(value || '');
   } catch (e) {
+    console.warn(`Received state that is not valid JSON, returning default value.`);
     return defaultValue;
   }
 }
