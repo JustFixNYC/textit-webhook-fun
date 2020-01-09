@@ -12,6 +12,7 @@
   },
   "scripts": {
     "postinstall": "tsc",
+    "heroku-postbuild": "tsc",
     "start": "concurrently --kill-others \"nodemon dist/app.js\" \"tsc --watch --preserveWatchOutput\""
   },
   "devDependencies": {
