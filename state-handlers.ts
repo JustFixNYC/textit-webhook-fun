@@ -7,6 +7,7 @@ type State = {
   handlerName: StateHandlerName,
   boroughGid?: GeoSearchBoroughGid,
   zip?: string,
+  bbl?: string,
 };
 
 type StateHandler = (state: State, input: string) => TextitResponse|Promise<TextitResponse>;
@@ -46,6 +47,7 @@ class StateHandlers {
     ], 'confirmAddress', {
       boroughGid: props.borough_gid,
       zip: props.postalcode,
+      bbl: props.pad_bbl,
     });
   };
 
