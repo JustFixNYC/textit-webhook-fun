@@ -1,6 +1,10 @@
 import { TextitConversationStatus, TextitResponse } from "./textit";
 import { geosearch, GeoSearchBoroughGid } from "./geosearch";
 
+const INVALID_YES_OR_NO = `Sorry, I didn't understand that. Please respond with Yes or No.`;
+
+type EvictionType = 'nonpayment'|'holdover'|'other';
+
 type StateHandlerName = (keyof StateHandlers)|'END';
 
 type State = {
@@ -8,6 +12,8 @@ type State = {
   boroughGid?: GeoSearchBoroughGid,
   zip?: string,
   bbl?: string,
+  isIncomeEligible?: boolean,
+  evictionType?: EvictionType,
 };
 
 type StateHandler = (state: State, input: string) => TextitResponse|Promise<TextitResponse>;
@@ -52,13 +58,53 @@ class StateHandlers {
   };
 
   confirmAddress: StateHandler = (s, input) => {
-    if (input.toLowerCase().startsWith('y')) {
-      return end(s, `TODO: Finish this! User's borough is ${s.boroughGid} and zip is ${s.zip}.`);
-    } else if (input.toLowerCase().startsWith('n')) {
+    if (isYes(input)) {
+      return ask(s, [
+        `Your eligibility depends on your household size and annual income:`,
+        ``,
+        `Household Size / Annual Income`,
+        `1 person / $24,120`,
+        `2 people / $32,480`,
+        `3 people / $40,840`,
+        `4 people / $49,200`,
+        `5 people / $57,560`,
+        `6 people / $65,920`,
+        ``,
+        `Do you think you are income eligible? Please reply with either Yes or No.`
+      ], 'receiveIncomeAnswer');
+    } else if (isNo(input)) {
       return say(s, "Oops, let's try again!", 'intro2');
     } else {
-      return ask(s, `Sorry, I didn't understand that. Please respond with Yes or No.`, 'confirmAddress');
+      return ask(s, INVALID_YES_OR_NO, 'confirmAddress');
     }
+  };
+
+  receiveIncomeAnswer: StateHandler = (s, input) => {
+    const isIncomeEligible = parseYesOrNo(input);
+
+    if (isIncomeEligible === undefined) {
+      return ask(s, INVALID_YES_OR_NO, 'receiveIncomeAnswer');
+    }
+
+    return ask(s, [
+      `Last question: what type of eviction notice did you receive? Please answer Nonpayment, Holdover, or Other.`
+    ], 'receiveEvictionType', {
+      isIncomeEligible
+    });
+  };
+
+  receiveEvictionType: StateHandler = (s, input) => {
+    let evictionType: EvictionType;
+
+    if (/pay/i.test(input)) {
+      evictionType = 'nonpayment';
+    } else if (/hold/i.test(input)) {
+      evictionType = 'holdover';
+    } else {
+      evictionType = 'other';
+    }
+
+    return end(s, 'TODO: Finish this!');
   };
 }
 
@@ -106,4 +152,18 @@ function say(s: State, text: string|string[], nextStateHandler: StateHandlerName
 
 function end(s: State, text: string|string[]): TextitResponse {
   return response(s, text, 'END', 'end');
+}
+
+function isYes(text: string): boolean {
+  return text.toLowerCase().startsWith('y');
+}
+
+function isNo(text: string): boolean {
+  return text.toLowerCase().startsWith('n');
+}
+
+function parseYesOrNo(text: string): boolean|undefined {
+  if (isYes(text)) return true;
+  if (isNo(text)) return false;
+  return undefined;
 }
