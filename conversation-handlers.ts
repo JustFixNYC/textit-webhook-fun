@@ -4,14 +4,32 @@ import { RtcInfo, EvictionType, getRtcHelp, ensureRtcInfo } from "./rtc";
 
 const INVALID_YES_OR_NO = `Sorry, I didn't understand that. Please respond with Yes or No.`;
 
-type ConversationHandlerName = (keyof ConversationHandlers)|'END';
+type ConversationHandlerName = keyof ConversationHandlers;
 
+/**
+ * This is the internal state used by our conversation handlers. Care
+ * should be taken in changing its schema, since in-progress
+ * conversations may end up using old versions of its schema.
+ */
 type State = Partial<RtcInfo> & {
   handlerName: ConversationHandlerName,
 };
 
 type Handler = ConversationHandler<State>;
 
+/**
+ * This maps conversation handler "names" to actual conversation handlers
+ * to effectively form a finite state machine (FSM).
+ * 
+ * Because the names of these handlers (i.e., the properties of the class)
+ * are stored in the conversation state, care should be taken in
+ * renaming/changing them, since existing conversations that are in that
+ * state may misbehave.
+ * 
+ * (Note that this isn't really useful as a "class" per se, but it was the
+ * easiest way to create a type-safe mapping from strings to conversation
+ * handlers.)
+ */
 class ConversationHandlers {
   intro1: Handler = s => {
     return say(s, [
@@ -108,6 +126,10 @@ class ConversationHandlers {
       `Visit ${help.url} for next steps.`
     ]);
   };
+
+  END: Handler = () => {
+    throw new Error(`Assertion failure, the END conversation handler should never be called!`);
+  };
 }
 
 const HANDLERS = new ConversationHandlers();
@@ -115,17 +137,9 @@ const HANDLERS = new ConversationHandlers();
 export async function handleConversation(input: string, serializedState?: string): Promise<ConversationResponse> {
   const state = deserializeConversationState<State>(serializedState, {handlerName: 'intro1'});
 
-  if (state.handlerName === 'END') {
-    throw new Error('Assertion failure, current state handler is END!');
-  }
-
   // TODO: state.handlerName is ultimately untrusted input, and this may be an insecure way
   // of testing whether the handler name is valid.
   const handler = HANDLERS[state.handlerName];
-
-  if (typeof(handler) !== 'function') {
-    throw new Error(`Assertion failure, "${state.handlerName}" is an invalid state handler name!`);
-  }
 
   return handler(state, input);
 };
