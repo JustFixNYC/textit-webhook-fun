@@ -1,5 +1,5 @@
 import express from 'express';
-import { handleConversation } from './conversation-handlers';
+import { handleConversation } from '../conversation-handlers';
 
 const PORT = process.env.PORT || '3000';
 
@@ -12,6 +12,8 @@ app.get('/', async (req, res) => {
   res.send(response);
 });
 
-app.listen(PORT, () => {
-  console.log(`listening on port ${PORT}.`);
-});
+if (module.parent === null) {
+  app.listen(PORT, () => {
+    console.log(`listening on port ${PORT}.`);
+  });
+}

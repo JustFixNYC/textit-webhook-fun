@@ -15,8 +15,8 @@
   "scripts": {
     "postinstall": "tsc",
     "build": "tsc",
-    "console": "node dist/run-in-console.js",
-    "start": "concurrently --kill-others \"nodemon dist/app.js\" \"tsc --watch --preserveWatchOutput\""
+    "console": "node dist/scripts/run-in-console.js",
+    "start": "concurrently --kill-others \"nodemon dist/scripts/app.js\" \"tsc --watch --preserveWatchOutput\""
   },
   "devDependencies": {
     "concurrently": "^5.0.2"

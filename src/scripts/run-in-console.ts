@@ -1,6 +1,6 @@
-import { ConsoleIO } from "./console-io";
-import { handleConversation } from "./conversation-handlers";
-import { ConversationResponse, ConversationStatus } from "./conversation";
+import { ConsoleIO } from "../console-io";
+import { handleConversation } from "../conversation-handlers";
+import { ConversationResponse, ConversationStatus } from "../conversation";
 
 async function main() {
   const io = new ConsoleIO();
