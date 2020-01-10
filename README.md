@@ -8,8 +8,8 @@ that is defined in textual source code, rather than visually as a flow diagram.
 
 At [JustFix.nyc][], we currently use TextIt as the "router" for all our SMS
 needs: that is, whenever someone sends a text to our phone number, it's handled
-by TextIt.  This was great for initial prototyping but, in some cases, has become
-suboptimal in some ways as our organization has evolved:
+by TextIt.  This was great for initial prototyping but has become suboptimal
+in some ways as our organization has evolved:
 
 * The only people who ever change the TextIt flows and campaigns are engineers,
   who are already fluent with code, while the primary audience of TextIt is
@@ -21,6 +21,10 @@ suboptimal in some ways as our organization has evolved:
 * It can be difficult to test our flows to ensure that they work as expected; for
   instance, RapidPro/TextIt doesn't have concepts like unit testing or type safety,
   which can greatly improve reliability and shorten the development cycle.
+
+* Changes to flows are difficult to detect and roll-back in case of
+  failure; in contrast, a git repository and the workflows offered by platforms
+  like GitHub make it easy to track and control changes.
 
 [JustFix.nyc]: https://www.justfix.nyc/
 
