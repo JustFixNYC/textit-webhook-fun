@@ -26,7 +26,11 @@ in some ways as our organization has evolved:
   failure; in contrast, a git repository and the workflows offered by platforms
   like GitHub make it easy to track and control changes.
 
+* Most actual user data is stored in our [Tenant Platform][], not
+  TextIt, which makes accessing it cumbersome.
+
 [JustFix.nyc]: https://www.justfix.nyc/
+[Tenant Platform]: https://github.com/JustFixNYC/tenants2
 
 ## A solution
 
