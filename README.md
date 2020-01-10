@@ -168,6 +168,11 @@ Actually connecting the prototype to TextIt takes a bit more work:
   of our web and SMS-based products would be unified, reducing overall
   translation effort. So there are definitely trade-offs involved.
 
+## Related projects
+
+* [toolness/justfix-interview-ts-fun](https://github.com/toolness/justfix-interview-ts-fun) is a 2018 experiment to build a conversational system that could work across many different media including SMS and web.
+
+
 [lingui]: https://github.com/lingui/js-lingui
 [Crowdin]: https://crowdin.com/
 [textit-l10n]: https://blog.textit.in/localizing-workflows-to-support-multiple-languages
