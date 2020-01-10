@@ -124,7 +124,24 @@ class StateHandlers {
 
 const HANDLERS = new StateHandlers();
 
-export async function handleState(input: string, deserializedState: Object|null): Promise<TextitResponse> {
+function parseState(value: string|undefined): Object|null {
+  if (!value) return null;
+
+  try {
+    const result = JSON.parse(value);
+    if (!(result && typeof(result) === 'object')) {
+      console.warn(`Received state that is not an object.`);
+      return null;
+    }
+    return result;
+  } catch (e) {
+    console.warn(`Received state that is not valid JSON.`);
+    return null;
+  }
+}
+
+export async function handleState(input: string, serializedState?: string): Promise<TextitResponse> {
+  const deserializedState = parseState(serializedState);
   const state: State = (deserializedState as State) || {handlerName: 'intro1'};
 
   if (state.handlerName === 'END') {
