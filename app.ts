@@ -1,5 +1,4 @@
 import express from 'express';
-import { TextitConversationStatus, TextitResponse } from './textit';
 import { handleState } from './state-handlers';
 
 const PORT = process.env.PORT || '3000';
