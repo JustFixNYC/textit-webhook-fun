@@ -125,10 +125,11 @@ Actually connecting the prototype to TextIt takes a bit more work:
   or Django's built-in support, with localization workflow handled by
   a tool like [Crowdin][].
 
-  This is another area where TextIt shines, since it supports localization
-  out-of-the-box and makes it very easy for non-technical translators
-  to contribute. An added benefit is that because they have access to the
-  flow diagram, they have a lot of context around what they're translating.
+  This is another area where TextIt shines, since
+  [it supports localization out-of-the-box][textit-l10n] and makes it
+  very easy for non-technical translators to contribute. An added benefit
+  is that because they have access to the flow diagram, they have a lot of
+  context around what they're translating.
 
   However, one downside of TextIt's approach is also that it's siloed from
   other localization systems: if, for example, our textbots reuse text
@@ -138,3 +139,4 @@ Actually connecting the prototype to TextIt takes a bit more work:
 
 [lingui]: https://github.com/lingui/js-lingui
 [Crowdin]: https://crowdin.com/
+[textit-l10n]: https://blog.textit.in/localizing-workflows-to-support-multiple-languages
