@@ -50,14 +50,25 @@ Since it's a prototype, it has a number of limitations:
 
 * Localization isn't addressed at all.
 
+* It's needlessly expensive to operate as a server; a serverless/FaaS solution
+  would be cheaper.
+
 [EFNYC]: https://www.evictionfreenyc.org/en-US/
 
 ### Using the prototype
 
 You'll need NodeJS and yarn.
 
+First install dependencies:
+
 ```
 yarn install
+```
+
+Then run the following to start both the TypeScript compiler in watch
+mode, and the development server:
+
+```
 yarn start
 ```
 
@@ -68,10 +79,16 @@ a separate terminal by running:
 yarn console
 ```
 
+#### Connecting the prototype to TextIt
+
 Actually connecting the prototype to TextIt takes a bit more work:
 
 1. You'll first need to expose the development server to the internet by
    either punching a hole in your firewall or using a tool like [ngrok][].
+
+   Alternatively, you can deploy the prototype to Heroku via
+   `git push heroku master` (assuming you've properly configured the
+   repository with the `heroku` CLI).
 
 2. Next, you'll want to [import the TextIt flow][import] in
    [`textit-flow.json`](./textit-flow.json) into your TextIt account,
