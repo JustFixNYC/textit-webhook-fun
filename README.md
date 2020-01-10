@@ -50,6 +50,8 @@ Since it's a prototype, it has a number of limitations:
 
 * Localization isn't addressed at all.
 
+* It has no unit tests.
+
 * It's needlessly expensive to operate as a server; a serverless/FaaS solution
   would be cheaper.
 
