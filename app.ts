@@ -1,5 +1,5 @@
 import express from 'express';
-import { handleState } from './state-handlers';
+import { handleConversation } from './conversation-handlers';
 
 const PORT = process.env.PORT || '3000';
 
@@ -8,7 +8,7 @@ const app = express();
 app.get('/', async (req, res) => {
   const input: string|undefined = req.query.input;
   const state: string|undefined = req.query.state;
-  const response = await handleState(input || '', state);
+  const response = await handleConversation(input || '', state);
   res.send(response);
 });
 

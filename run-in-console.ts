@@ -1,5 +1,5 @@
 import { ConsoleIO } from "./console-io";
-import { handleState } from "./state-handlers";
+import { handleConversation } from "./conversation-handlers";
 import { ConversationResponse, ConversationStatus } from "./conversation";
 
 async function main() {
@@ -9,7 +9,7 @@ async function main() {
   let ended = false;
 
   while (!ended) {
-    const response: ConversationResponse = await handleState(input, state);
+    const response: ConversationResponse = await handleConversation(input, state);
     state = response.state;
     io.writeLine(response.text);
     if (response.conversationStatus === ConversationStatus.End) {

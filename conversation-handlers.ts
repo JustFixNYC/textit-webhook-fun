@@ -1,4 +1,4 @@
-import { ConversationStatus, ConversationResponse } from "./conversation";
+import { ConversationStatus, ConversationHandler, ConversationResponse, deserializeConversationState, serializeConversationState } from "./conversation";
 import { geosearch, GeoSearchBoroughGid } from "./geosearch";
 import { getNychaInfo } from "./nycha";
 import { isRtcZipcode } from "./rtc-zipcodes";
@@ -8,7 +8,7 @@ const INVALID_YES_OR_NO = `Sorry, I didn't understand that. Please respond with 
 // These have meaning to the EFNYC site, please don't change them.
 type EvictionType = 'nonpay'|'holdover'|'general';
 
-type StateHandlerName = (keyof StateHandlers)|'END';
+type ConversationHandlerName = (keyof ConversationHandlers)|'END';
 
 type RtcInfo = {
   boroughGid: GeoSearchBoroughGid,
@@ -19,13 +19,13 @@ type RtcInfo = {
 };
 
 type State = Partial<RtcInfo> & {
-  handlerName: StateHandlerName,
+  handlerName: ConversationHandlerName,
 };
 
-type StateHandler = (state: State, input: string) => ConversationResponse|Promise<ConversationResponse>;
+type Handler = ConversationHandler<State>;
 
-class StateHandlers {
-  intro1: StateHandler = s => {
+class ConversationHandlers {
+  intro1: Handler = s => {
     return say(s, [
       `Right to Counsel is a new law in NYC that provides free legal representation for eligible tenants. You may qualify based on:`,
       `- where you live in NYC`,
@@ -34,7 +34,7 @@ class StateHandlers {
     ], 'intro2');
   };
 
-  intro2: StateHandler = s => {
+  intro2: Handler = s => {
     return ask(
       s,
       `Let's see if you have the right to a free attorney! To start, what is your address and borough? Example: 654 Park Place, Brooklyn`,
@@ -42,7 +42,7 @@ class StateHandlers {
     );
   };
 
-  receiveContactAddress: StateHandler = async (s, input) => {
+  receiveContactAddress: Handler = async (s, input) => {
     const results = await geosearch(input);
     if (!results.features.length) {
       return ask(
@@ -63,7 +63,7 @@ class StateHandlers {
     });
   };
 
-  confirmAddress: StateHandler = (s, input) => {
+  confirmAddress: Handler = (s, input) => {
     if (isYes(input)) {
       return ask(s, [
         `Your eligibility depends on your household size and annual income:`,
@@ -85,7 +85,7 @@ class StateHandlers {
     }
   };
 
-  receiveIncomeAnswer: StateHandler = (s, input) => {
+  receiveIncomeAnswer: Handler = (s, input) => {
     const isIncomeEligible = parseYesOrNo(input);
 
     if (isIncomeEligible === undefined) {
@@ -99,7 +99,7 @@ class StateHandlers {
     });
   };
 
-  receiveEvictionType: StateHandler = (s, input) => {
+  receiveEvictionType: Handler = (s, input) => {
     let evictionType: EvictionType;
 
     if (/non/i.test(input)) {
@@ -122,27 +122,10 @@ class StateHandlers {
   };
 }
 
-const HANDLERS = new StateHandlers();
+const HANDLERS = new ConversationHandlers();
 
-function parseState(value: string|undefined): Object|null {
-  if (!value) return null;
-
-  try {
-    const result = JSON.parse(value);
-    if (!(result && typeof(result) === 'object')) {
-      console.warn(`Received state that is not an object.`);
-      return null;
-    }
-    return result;
-  } catch (e) {
-    console.warn(`Received state that is not valid JSON.`);
-    return null;
-  }
-}
-
-export async function handleState(input: string, serializedState?: string): Promise<ConversationResponse> {
-  const deserializedState = parseState(serializedState);
-  const state: State = (deserializedState as State) || {handlerName: 'intro1'};
+export async function handleConversation(input: string, serializedState?: string): Promise<ConversationResponse> {
+  const state = deserializeConversationState<State>(serializedState, {handlerName: 'intro1'});
 
   if (state.handlerName === 'END') {
     throw new Error('Assertion failure, current state handler is END!');
@@ -159,7 +142,7 @@ export async function handleState(input: string, serializedState?: string): Prom
   return handler(state, input);
 };
 
-function response(s: State, text: string|string[], nextStateHandler: StateHandlerName, status: ConversationStatus, stateUpdates?: Partial<State>): ConversationResponse {
+function response(s: State, text: string|string[], nextStateHandler: ConversationHandlerName, status: ConversationStatus, stateUpdates?: Partial<State>): ConversationResponse {
   const nextState: State = {
     ...s,
     ...stateUpdates,
@@ -170,14 +153,14 @@ function response(s: State, text: string|string[], nextStateHandler: StateHandle
     text = text.join('\n');
   }
 
-  return {text, conversationStatus: status, state: JSON.stringify(nextState)};
+  return {text, conversationStatus: status, state: serializeConversationState(nextState)};
 }
 
-function ask(s: State, text: string|string[], nextStateHandler: StateHandlerName, stateUpdates?: Partial<State>): ConversationResponse {
+function ask(s: State, text: string|string[], nextStateHandler: ConversationHandlerName, stateUpdates?: Partial<State>): ConversationResponse {
   return response(s, text, nextStateHandler, ConversationStatus.Ask, stateUpdates);
 }
 
-function say(s: State, text: string|string[], nextStateHandler: StateHandlerName, stateUpdates?: Partial<State>): ConversationResponse {
+function say(s: State, text: string|string[], nextStateHandler: ConversationHandlerName, stateUpdates?: Partial<State>): ConversationResponse {
   return response(s, text, nextStateHandler, ConversationStatus.Loop, stateUpdates);
 }
 
