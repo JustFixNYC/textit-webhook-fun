@@ -32,6 +32,10 @@ almost-trivial TextIt flow that simply delegates to the FSM:
 
 <img src="./docs/flow-diagram.png">
 
+Another interesting aspect of this solution is that it's not particularly
+coupled to TextIt, which makes it easy to migrate if we ever decide to
+move away from that platform.
+
 ## About this prototype
 
 This prototype implements the [Eviction Free NYC][EFNYC] web-based screener as
