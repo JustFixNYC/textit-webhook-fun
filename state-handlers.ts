@@ -1,4 +1,4 @@
-import { TextitConversationStatus, TextitResponse } from "./textit";
+import { ConversationStatus, ConversationResponse } from "./conversation";
 import { geosearch, GeoSearchBoroughGid } from "./geosearch";
 import { getNychaInfo } from "./nycha";
 import { isRtcZipcode } from "./rtc-zipcodes";
@@ -22,7 +22,7 @@ type State = Partial<RtcInfo> & {
   handlerName: StateHandlerName,
 };
 
-type StateHandler = (state: State, input: string) => TextitResponse|Promise<TextitResponse>;
+type StateHandler = (state: State, input: string) => ConversationResponse|Promise<ConversationResponse>;
 
 class StateHandlers {
   intro1: StateHandler = s => {
@@ -140,7 +140,7 @@ function parseState(value: string|undefined): Object|null {
   }
 }
 
-export async function handleState(input: string, serializedState?: string): Promise<TextitResponse> {
+export async function handleState(input: string, serializedState?: string): Promise<ConversationResponse> {
   const deserializedState = parseState(serializedState);
   const state: State = (deserializedState as State) || {handlerName: 'intro1'};
 
@@ -159,7 +159,7 @@ export async function handleState(input: string, serializedState?: string): Prom
   return handler(state, input);
 };
 
-function response(s: State, text: string|string[], nextStateHandler: StateHandlerName, status: TextitConversationStatus, stateUpdates?: Partial<State>): TextitResponse {
+function response(s: State, text: string|string[], nextStateHandler: StateHandlerName, status: ConversationStatus, stateUpdates?: Partial<State>): ConversationResponse {
   const nextState: State = {
     ...s,
     ...stateUpdates,
@@ -173,16 +173,16 @@ function response(s: State, text: string|string[], nextStateHandler: StateHandle
   return {text, conversationStatus: status, state: JSON.stringify(nextState)};
 }
 
-function ask(s: State, text: string|string[], nextStateHandler: StateHandlerName, stateUpdates?: Partial<State>): TextitResponse {
-  return response(s, text, nextStateHandler, 'ask', stateUpdates);
+function ask(s: State, text: string|string[], nextStateHandler: StateHandlerName, stateUpdates?: Partial<State>): ConversationResponse {
+  return response(s, text, nextStateHandler, ConversationStatus.Ask, stateUpdates);
 }
 
-function say(s: State, text: string|string[], nextStateHandler: StateHandlerName, stateUpdates?: Partial<State>): TextitResponse {
-  return response(s, text, nextStateHandler, 'loop', stateUpdates);
+function say(s: State, text: string|string[], nextStateHandler: StateHandlerName, stateUpdates?: Partial<State>): ConversationResponse {
+  return response(s, text, nextStateHandler, ConversationStatus.Loop, stateUpdates);
 }
 
-function end(s: State, text: string|string[]): TextitResponse {
-  return response(s, text, 'END', 'end');
+function end(s: State, text: string|string[]): ConversationResponse {
+  return response(s, text, 'END', ConversationStatus.End);
 }
 
 function isYes(text: string): boolean {

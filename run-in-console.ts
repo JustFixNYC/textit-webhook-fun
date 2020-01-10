@@ -1,6 +1,6 @@
 import { ConsoleIO } from "./console-io";
 import { handleState } from "./state-handlers";
-import { TextitResponse } from "./textit";
+import { ConversationResponse, ConversationStatus } from "./conversation";
 
 async function main() {
   const io = new ConsoleIO();
@@ -9,14 +9,14 @@ async function main() {
   let ended = false;
 
   while (!ended) {
-    const response: TextitResponse = await handleState(input, state);
+    const response: ConversationResponse = await handleState(input, state);
     state = response.state;
     io.writeLine(response.text);
-    if (response.conversationStatus === 'end') {
+    if (response.conversationStatus === ConversationStatus.End) {
       ended = true;
-    } else if (response.conversationStatus === 'loop') {
+    } else if (response.conversationStatus === ConversationStatus.Loop) {
       // Do nothing, just loop.
-    } else if (response.conversationStatus === 'ask') {
+    } else if (response.conversationStatus === ConversationStatus.Ask) {
       input = await io.question('> ');
     }
   }
