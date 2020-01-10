@@ -54,7 +54,7 @@ Since it's a prototype, it has a number of limitations:
   this prototype; a production version would avoid such duplication.
 
 * There's not really any error handling/reported. Unexpected/nonsensical user
-  input is handled, but not e.g. network errors or timeouts.
+  input is handled, but not e.g. network errors/timeouts or assertion failures.
 
 * Localization isn't addressed at all.
 
