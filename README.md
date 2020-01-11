@@ -64,9 +64,6 @@ Since it's a prototype, it has a number of limitations:
 
 * It has no unit tests.
 
-* It's needlessly expensive to operate as a server; a serverless/FaaS solution
-  would be cheaper.
-
 [EFNYC]: https://www.evictionfreenyc.org/en-US/
 
 ### Using the prototype
@@ -104,10 +101,16 @@ Actually connecting the prototype to TextIt takes a bit more work:
    `git push heroku master` (assuming you've properly configured the
    repository with the `heroku` CLI).
 
+   Yet another way you can deploy the prototype is via AWS Lambda.
+   You can build the JS bundle for the lambda function by running
+   `yarn lambda`, and then copy-paste the contents of
+   `lambda.bundle.js` into your Lambda function's code editor in
+   the AWS management console.
+
 2. Next, you'll want to [import the TextIt flow][import] in
    [`textit-flow.json`](./textit-flow.json) into your TextIt account,
-   and change the hostname of its single webhook node to match your
-   hostname.
+   and change the base URL of its single webhook node to match your
+   deployment's endpoint.
 
 [ngrok]: https://ngrok.io/
 [import]: https://help.nyaruka.com/en/articles/1911231-importing-a-flow
