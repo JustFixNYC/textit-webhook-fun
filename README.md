@@ -29,6 +29,10 @@ in some ways as our organization has evolved:
 * Most actual user data is stored in our [Tenant Platform][], not
   TextIt, which makes accessing it cumbersome.
 
+Many of the issues with TextIt are general to "no code" solutions at large,
+and documented in Alex Hudson's blog post titled
+[The "No Code" Delusion](https://www.alexhudson.com/2020/01/13/the-no-code-delusion/) .
+
 [JustFix.nyc]: https://www.justfix.nyc/
 [Tenant Platform]: https://github.com/JustFixNYC/tenants2
 
@@ -125,9 +129,10 @@ Actually connecting the prototype to TextIt takes a bit more work:
   the same phone number.
 
   (That said, another approach might be to put a custom SMS-receiving
-  solution in front of TextIt, and somehow only forward messages
-  destined for TextIt to TextIt, perhaps via TextIt's API, but such
-  a solution has yet to be explored--if it is even possible.)
+  solution in front of TextIt, and use TextIt's
+  [External Channel API](https://textit.in/channels/types/external/claim)
+  to only forward messages destined for TextIt to TextIt, but such
+  a solution has yet to be explored.)
 
 * While TextIt isn't an ideal authoring environment for engineers, it
   *is* an easy way for non-technical stakeholders to get a good
